@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>API Tester</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { padding: 10px; margin: 5px 0; width: 380px; }
+    pre { background: #111; color: #0f0; padding: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+  <h2>API Tester (Tokens)</h2>
+
+  <form id="form">
+    <h3>Configuración</h3>
+
+    <input type="text" id="base_url" placeholder="Base URL (ej: https://...)" required /><br>
+    <input type="text" id="path" placeholder="Path (ej: /v2/tokens)" required /><br>
+    <input type="text" id="api_key" placeholder="Bearer Key (pk_...)" required /><br>
+
+    <h3>Datos de tarjeta</h3>
+    <input type="text" id="card_number" placeholder="Número de tarjeta" required /><br>
+    <input type="text" id="cvv" placeholder="CVV" required /><br>
+    <input type="text" id="expiration_month" placeholder="Mes (MM)" required /><br>
+    <input type="text" id="expiration_year" placeholder="Año (YYYY)" required /><br>
+    <input type="email" id="email" placeholder="Email" required /><br>
+
+    <button type="submit">Enviar Request</button>
+  </form>
+
+  <h3>Respuesta:</h3>
+  <pre id="resultado">---</pre>
+
+  <script>
+    const form = document.getElementById("form");
+    const resultado = document.getElementById("resultado");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      resultado.textContent = "Cargando...";
+
+      const baseUrl = document.getElementById("base_url").value.trim();
+      const path = document.getElementById("path").value.trim();
+      const apiKey = document.getElementById("api_key").value.trim();
+
+      const url = baseUrl.replace(/\/$/, "") + path;
+
+      const payload = {
+        card_number: document.getElementById("card_number").value,
+        cvv: document.getElementById("cvv").value,
+        expiration_month: document.getElementById("expiration_month").value,
+        expiration_year: document.getElementById("expiration_year").value,
+        email: document.getElementById("email").value
+      };
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await response.text();
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = text;
+        }
+
+        resultado.textContent =
+          "URL: " + url + "\n" +
+          "STATUS: " + response.status + "\n\n" +
+          JSON.stringify(data, null, 2);
+
+      } catch (error) {
+        resultado.textContent = "Error: " + error.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
